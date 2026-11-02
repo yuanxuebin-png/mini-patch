@@ -29,6 +29,7 @@ from patch_agent.snapshot import SnapshotStore
 from patch_agent.tools_read import make_read_tools
 from patch_agent.tools_write import make_write_tools
 from patch_agent.commands import make_command_tool
+from patch_agent.ledger import TokenLedger
 
 ENV_CANDIDATES = [
     Path(__file__).resolve().parent.parent / ".env",
@@ -60,8 +61,18 @@ MAIN_SYSTEM = """你是代码修复工程师, 在沙箱化的示例仓库中工�
 """
 
 
-def run_task(model: BaseChatModel, sandbox: Sandbox, task: str, verbose: bool = True) -> dict:
-    """执行一个修复任务: 侦察 -> 修复。返回两阶段的产物与消息记录。"""
+def run_task(
+    model: BaseChatModel,
+    sandbox: Sandbox,
+    task: str,
+    verbose: bool = True,
+    ledger: TokenLedger | None = None,
+) -> dict:
+    """执行一个修复任务: 侦察 -> 修复。返回两阶段的产物与消息记录。
+
+    ledger 传入时按「侦察 / 修复」两个标签记账 —— 这就是
+    A/B 隔离对照(commit 9)的数据来源。
+    """
 
     def say(msg: str) -> None:
         if verbose:
@@ -74,6 +85,8 @@ def run_task(model: BaseChatModel, sandbox: Sandbox, task: str, verbose: bool = 
     report: ScoutReport = scout_result["structured_response"]
     say(f"定位: {report.target_file} 第 {report.line_start}-{report.line_end} 行")
     say(f"依据: {report.reason}")
+    if ledger is not None:
+        ledger.add("侦察", scout_result["messages"])
 
     # ---- 阶段 2: 修复(读写 + 命令) ---------------------------------
     say("=== 阶段 2: 修复(主 Agent) ===")
@@ -94,6 +107,8 @@ def run_task(model: BaseChatModel, sandbox: Sandbox, task: str, verbose: bool = 
     )
     main_result = main_agent.invoke({"messages": [("user", handoff)]})
     final_text = main_result["messages"][-1].content
+    if ledger is not None:
+        ledger.add("修复", main_result["messages"])
 
     say("=== 收尾 ===")
     say(final_text[:500])
@@ -140,10 +155,14 @@ if __name__ == "__main__":
     repo = Path(__file__).resolve().parent.parent / "sandbox_repo"
     prepare_demo_repo(repo)
     box = Sandbox(repo)
+    ledger = TokenLedger()
     result = run_task(
         load_model(),
         box,
         "python test_calc.py 运行失败, 请定位并修复, 修到测试通过",
+        ledger=ledger,
     )
     print("\n===== 结构化侦察结论 =====")
     print(result["scout_report"].model_dump())
+    print("\n===== token 账本(按阶段) =====")
+    print(ledger.report())
