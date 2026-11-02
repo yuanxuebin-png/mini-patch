@@ -72,6 +72,7 @@ class FixPipeline:
         self.model = model
         self.sandbox = sandbox
         self.snapshots = SnapshotStore(sandbox)
+        self.ledger = None              # run(..., ledger=) 时按阶段记账(A/B 对照用)
         self.graph = self._build()
 
     # ------------------------------------------------------------------
@@ -81,6 +82,8 @@ class FixPipeline:
         scout = make_scout(self.model, self.sandbox)
         result = scout.invoke({"messages": [("user", state["task"])]})
         report: ScoutReport = result["structured_response"]
+        if self.ledger is not None:
+            self.ledger.add("B-侦察", result["messages"])
         return {"report": report.model_dump(), "log": [f"scout: {report.target_file}:{report.line_start}-{report.line_end}"]}
 
     def fix_node(self, state: PipeState) -> dict:
@@ -101,7 +104,9 @@ class FixPipeline:
         if state["fix_hint"]:
             handoff += f"\n上一次验证失败, 输出如下, 请换思路修复:\n{state['fix_hint']}\n"
         handoff += "\n请开始修复, 完成后运行测试确认。"
-        agent.invoke({"messages": [("user", handoff)]})
+        result = agent.invoke({"messages": [("user", handoff)]})
+        if self.ledger is not None:
+            self.ledger.add("B-修复(父上下文)", result["messages"])
         return {"log": [f"fix: 第 {state['retries'] + 1} 次尝试完成"]}
 
     def verify_node(self, state: PipeState) -> dict:
@@ -189,8 +194,9 @@ class FixPipeline:
         return g.compile()
 
     # ------------------------------------------------------------------
-    def run(self, task: str, test_cmd: str, verbose: bool = True) -> dict:
-        """执行完整管线, 返回最终状态。"""
+    def run(self, task: str, test_cmd: str, verbose: bool = True, ledger=None) -> dict:
+        """执行完整管线, 返回最终状态。ledger 传入时按阶段记账。"""
+        self.ledger = ledger
         init: PipeState = {
             "task": task, "test_cmd": test_cmd, "report": None,
             "retries": 0, "last_out": "", "stalled": 0, "fix_hint": "",
