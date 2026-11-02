@@ -18,7 +18,7 @@ from __future__ import annotations
 from functools import wraps
 from pathlib import Path
 
-from langchain_core.tools import BaseTool, ToolException
+from langchain_core.tools import BaseTool, ToolException, tool
 
 from patch_agent.sandbox import Sandbox, SandboxViolation
 
