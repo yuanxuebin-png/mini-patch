@@ -1,0 +1,16 @@
+# 环境与密钥
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# 运行产物
+storage/
+*.log
+.snapshots/
+
+# IDE
+.idea/
+.vscode/
