@@ -57,6 +57,7 @@ patch-agent/
 │   ├── scout.py         # 侦察子 Agent(隔离式)
 │   ├── graph.py         # 执行循环 + 演示仓库
 │   ├── pipeline.py      # StateGraph 编排(scout→fix→verify 条件边)
+│   ├── chat.py          # 交互式对话窗口(动手/建议双模式)
 │   ├── ledger.py        # token 账本(按阶段记账)
 │   ├── ab_compare.py    # A/B 隔离收益对照实验
 │   └── evals/           # 20 条评测集 + 自动判定执行器
@@ -74,7 +75,10 @@ patch-agent/
 # 依赖: python 3.13+, langchain 1.x, langgraph 1.x
 cp .env.example .env        # 填入 OPENAI_API_KEY / OPENAI_BASE_URL
 
-# 端到端演示: 注入 bug -> 侦察 -> 修复 -> 测试通过
+# 交互式对话窗口(动手/建议双模式): 打字下指令, 它改文件或给建议
+python -m patch_agent.chat [工作区目录]
+
+# 端到端演示: 注入 bug -> 侦察 -> 修复 -> 测试通过(无人值守)
 python -m patch_agent.graph
 
 # 全量评测(20 条, 约 3 分钟)
