@@ -57,7 +57,8 @@ patch-agent/
 │   ├── scout.py         # 侦察子 Agent(隔离式)
 │   ├── graph.py         # 执行循环 + 演示仓库
 │   ├── pipeline.py      # StateGraph 编排(scout→fix→verify 条件边)
-│   ├── chat.py          # 交互式对话窗口(动手/建议双模式)
+│   ├── chat.py          # 交互式对话窗口(动手/建议双模式, rich 彩色输出)
+│   ├── knowledge.py     # 知识库联动工具(HTTP 调 pocket-rag, 失败明确降级)
 │   ├── ledger.py        # token 账本(按阶段记账)
 │   ├── ab_compare.py    # A/B 隔离收益对照实验
 │   └── evals/           # 20 条评测集 + 自动判定执行器
@@ -77,6 +78,10 @@ cp .env.example .env        # 填入 OPENAI_API_KEY / OPENAI_BASE_URL
 
 # 交互式对话窗口(动手/建议双模式): 打字下指令, 它改文件或给建议
 python -m patch_agent.chat [工作区目录]
+
+# (可选)启动 pocket-rag 知识库后, 对话窗口获得私有规范检索能力
+# 双项目联动: 代码 Agent 按需检索个人知识库的项目规范/技术笔记
+cd ../pocket-rag && python -m pocket_rag.api   # 默认 127.0.0.1:8765
 
 # 端到端演示: 注入 bug -> 侦察 -> 修复 -> 测试通过(无人值守)
 python -m patch_agent.graph
