@@ -15,14 +15,14 @@ LangChain 1.x（`create_agent` + 中间件）+ LangGraph 1.x（`StateGraph` 条�
 | 正样本平均输入 token | ≈9777 / 任务 | token 账本实测 |
 | 隔离式 vs 单 Agent | 总输入多 28%, 但父上下文省 19% | `docs/ab_result.md` |
 
-负样本误改的 3 次是**同一个根因**(把环境缺依赖当成代码问题修掉),
-分析见 `docs/eval_analysis.md`, 对应 v2 改进方向已写明。
-这类「诚实的边界结论」是本项目刻意保留的: 编一个"误改率 0%"很容易, 但没有意义。
+负样本 3 次误改指向同一根因: Agent 将「环境缺依赖」误判为代码问题并直接修改。
+分析见 `docs/eval_analysis.md`, 对应的 v2 改进方向(报错分类前置)已列入 Roadmap。
+负样本数据如实保留, 不做美化处理。
 
 ## 设计原则
 
 1. **权限分级**: 只读工具免审批; 写文件必须先产出 diff 并落回滚快照;
-   命令执行走白名单(仅 python/pytest/git 只读子命令, 禁 shell 拼接与超时强杀)。
+   命令执行走白名单(仅 python/pytest/git 只读子命令, 禁 shell 拼接, 超时强杀)。
 2. **上下文隔离**: 代码侦察由只读子 Agent 完成, 主 Agent 只接收
    `ScoutReport(目标文件, 行号区间, 理由)` 结构化结论, 不接收原始代码全文。
 3. **可验证**: 20 条评测任务(14 正 6 负), 每条一个独立临时目录零污染;
@@ -76,11 +76,11 @@ patch-agent/
 # 依赖: python 3.13+, langchain 1.x, langgraph 1.x
 cp .env.example .env        # 填入 OPENAI_API_KEY / OPENAI_BASE_URL
 
-# 交互式对话窗口(动手/建议双模式): 打字下指令, 它改文件或给建议
+# 交互式对话窗口(动手/建议双模式): 以自然语言下达指令, 由 Agent 修改文件或给出建议
 python -m patch_agent.chat [工作区目录]
 
-# (可选)启动 pocket-rag 知识库后, 对话窗口获得私有规范检索能力
-# 双项目联动: 代码 Agent 按需检索个人知识库的项目规范/技术笔记
+# (可选)启动 pocket-rag 知识库后, 对话窗口获得私有规范检索能力:
+# Agent 在涉及项目规范/技术约定的问题时, 通过 query_knowledge 工具检索知识库
 cd ../pocket-rag && python -m pocket_rag.api   # 默认 127.0.0.1:8765
 
 # 端到端演示: 注入 bug -> 侦察 -> 修复 -> 测试通过(无人值守)
