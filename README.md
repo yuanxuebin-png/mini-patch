@@ -51,7 +51,7 @@ token 记账零侵入: 直接从 `AIMessage.usage_metadata` 按阶段累加, 不
 ## 目录结构
 
 ```
-MiniPatch/
+mini-patch/
 ├── patch_agent/
 │   ├── sandbox.py       # 工作区约束 + 路径越界防护
 │   ├── tools_read.py    # 只读工具: list_dir / grep / read_snippet
