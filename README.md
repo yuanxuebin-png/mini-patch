@@ -1,4 +1,8 @@
-# patch-agent —— 代码修改智能体
+# MiniPatch —— 代码修改智能体
+
+> 「Mini」指体量：三千行以内跑通完整闭环，每一层都能读完；
+> 「Patch」指定位：**只做外科式的最小改动**，术前有快照、按风险分级授权、失手能回滚。
+> 这和「整段重写」的代码生成工具是两种不同的思路。
 
 一个能「读代码 → 定位问题 → 修改文件 → 跑测试 → 根据报错继续修」的代码修改 Agent。
 核心关注点不是「能不能改」，而是**改错了怎么办、什么不能改、怎么证明改对了**。
@@ -47,7 +51,7 @@ token 记账零侵入: 直接从 `AIMessage.usage_metadata` 按阶段累加, 不
 ## 目录结构
 
 ```
-patch-agent/
+mini-patch/
 ├── patch_agent/
 │   ├── sandbox.py       # 工作区约束 + 路径越界防护
 │   ├── tools_read.py    # 只读工具: list_dir / grep / read_snippet

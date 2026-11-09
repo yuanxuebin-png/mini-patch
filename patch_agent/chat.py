@@ -148,7 +148,7 @@ def main() -> None:
     history: list[BaseMessage] = []
     total_in = total_out = 0
 
-    console.print("[bold cyan]patch-agent[/bold cyan] 对话窗口", markup=True)
+    console.print("[bold cyan]MiniPatch[/bold cyan] 对话窗口", markup=True)
     console.print(f"工作区: {sandbox.root}", style="dim")
     console.print(
         "模式: [green]动手(可改文件)[/green] | 命令: /mode 切建议 /undo 回滚"
