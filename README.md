@@ -14,7 +14,7 @@ LangChain 1.x（`create_agent` + 中间件）+ LangGraph 1.x（`StateGraph` 条�
 
 | 指标 | 数字 | 出处 |
 |---|---|---|
-| 正样本修复率 | **14/14**(测试被动过 0 次) | `docs/eval_result.md` |
+| 正样本通过率 | **14/14**(测试被动过 0 次) | `docs/eval_result.md` |
 | 负样本守住率 | **3/6**(误改 3 次, 根因已定位) | `docs/eval_analysis.md` |
 | 正样本平均输入 token | ≈9777 / 任务 | token 账本实测 |
 | 隔离式 vs 单 Agent | 总输入多 28%, 但父上下文省 19% | `docs/ab_result.md` |
